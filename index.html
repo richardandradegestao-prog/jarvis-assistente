@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JARVIS | Teste de Voz</title>
+<style>
+:root{color-scheme:dark}*{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:#081221;color:#eaf2ff;font-family:Arial,sans-serif;padding:20px}.panel{width:min(560px,100%);background:#14243c;border:1px solid #314766;border-radius:20px;padding:30px;text-align:center}h1{letter-spacing:2px;margin-top:0}p{color:#a8c0e2;line-height:1.5}button{background:#2463ea;color:white;border:0;border-radius:12px;padding:15px 24px;font-weight:700;cursor:pointer;font-size:16px}button:disabled{opacity:.55;cursor:not-allowed}.result{margin-top:20px;padding:16px;background:#0b1729;border-radius:12px;min-height:76px;text-align:left;line-height:1.5;overflow-wrap:anywhere}#status{font-weight:bold}small{display:block;margin-top:18px;color:#a8c0e2}
+</style>
+</head>
+<body>
+<main class="panel">
+<h1>J.A.R.V.I.S.</h1>
+<p>Teste de reconhecimento de voz</p>
+<button id="mic" type="button">🎙 Falar com JARVIS</button>
+<p id="status" role="status">Pronto para ouvir.</p>
+<div class="result" id="result" aria-live="polite">Sua fala aparecerá aqui.</div>
+<small>Teste isolado: nenhuma fala é enviada ao seu Apps Script ou ao GitHub. O reconhecimento pode utilizar o serviço de fala do navegador.</small>
+</main>
+<script>
+(function(){
+  const button=document.getElementById('mic');
+  const status=document.getElementById('status');
+  const result=document.getElementById('result');
+  const Recognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+  if(!Recognition){status.textContent='Reconhecimento de voz não disponível neste navegador. Tente no Chrome.';button.disabled=true;return;}
+  const recognition=new Recognition();
+  recognition.lang='pt-BR';recognition.interimResults=true;recognition.continuous=false;
+  let listening=false;
+  button.addEventListener('click',function(){
+    if(listening){recognition.stop();return;}
+    try{recognition.start();}catch(err){status.textContent='Não foi possível iniciar: '+err.message;}
+  });
+  recognition.onstart=function(){listening=true;button.textContent='■ Parar de ouvir';status.textContent='Ouvindo... fale agora.';};
+  recognition.onresult=function(event){
+    let transcript='';for(let i=0;i<event.results.length;i++)transcript+=event.results[i][0].transcript+' ';
+    result.textContent=transcript.trim()||'Aguardando fala...';
+    if(event.results[event.results.length-1].isFinal)status.textContent='Fala reconhecida!';
+  };
+  recognition.onerror=function(event){status.textContent='Erro no reconhecimento: '+event.error+(event.error==='not-allowed'?' — verifique a permissão de microfone para este endereço.':'');};
+  recognition.onend=function(){listening=false;button.textContent='🎙 Falar com JARVIS';if(status.textContent==='Ouvindo... fale agora.')status.textContent='Escuta encerrada. Tente novamente.';};
+})();
+</script>
+</body>
+</html>
